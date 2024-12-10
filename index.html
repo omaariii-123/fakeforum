@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+	<head><title>Fake Forum</title></head>
+	<body id="body">
+			<div style="position: absolute; margin-left: auto; margin-right: auto; left: 50%; top :50%; text-align: center;" id="firstdiv">
+			</div>
+	</body>
+	<script> 
+	let test = document.getElementById("firstdiv");
+		let f = document.createElement("form");
+		let a = document.createElement("input");
+		let c = document.createElement("br");
+		let c1 = document.createElement("br");
+		let b = document.createElement("input");
+		let d = document.createElement("input");
+		d.setAttribute("type", "submit");
+		f.setAttribute("action", "/log");
+		a.setAttribute("name", "username");
+		b.setAttribute("name", "password");
+		f.appendChild(a);	
+		f.appendChild(c);	
+		f.appendChild(b);	
+		f.appendChild(c1);	
+		f.appendChild(d);	
+		test.appendChild(f);	
+	</script>
+</html>
