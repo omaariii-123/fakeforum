@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
-	<head><title>Fake Forum</title></head>
+	<head><title>Fake Forum</title>
+	<input type="button" onclick="location.href='/register'" value="register!">
+	</head>
 	<body id="body">
 			<div style="position: absolute; margin-left: auto; margin-right: auto; left: 50%; top :50%; text-align: center;" id="firstdiv">
 			</div>
@@ -15,6 +17,7 @@
 		let d = document.createElement("input");
 		d.setAttribute("type", "submit");
 		f.setAttribute("action", "/log");
+		f.setAttribute("method", "POST");
 		a.setAttribute("name", "username");
 		b.setAttribute("name", "password");
 		f.appendChild(a);	
