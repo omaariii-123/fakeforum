@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	_ "github.com/mattn/go-sqlite3"
@@ -55,7 +56,7 @@ func createSession(w http.ResponseWriter, user User) string {
 	id, _ := uuid.NewV7()
 	db, _ := sql.Open("sqlite3", "wonderland.db")
 	smt, _ := db.Prepare("INSERT INTO sessions(id, username, userId) VALUES(?,?,?)")
-		println("**********", id.String(), user.Username, user.ID)
+	println("**********", id.String(), user.Username, user.ID)
 	_, err := smt.Exec(id.String(), user.Username, user.ID)
 	if err != nil {
 		println("**********-------------------", err.Error())
@@ -100,7 +101,7 @@ func auth(handler http.Handler) http.Handler {
 		}
 		var tmp string
 		var name string
-		tmpc := "" 
+		tmpc := ""
 		println(usr.Username, usr.Password)
 		cookie, err := r.Cookie("session_id")
 		if err == nil {
@@ -110,7 +111,7 @@ func auth(handler http.Handler) http.Handler {
 		row = smt.QueryRow(tmpc)
 		err = row.Scan(&tmp, &name)
 		if err == sql.ErrNoRows {
-			fmt.Printf("created session's id ", createSession(w, usr))
+			fmt.Println("created session's id ", createSession(w, usr))
 		}
 		println(name)
 		smt.Close()
@@ -157,14 +158,40 @@ func registerapi(w http.ResponseWriter, r *http.Request) {
 func handling(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_id")
 	var name string
-	var tmp	string
+	var tmp string
 	if err == nil {
 		db, _ := sql.Open("sqlite3", "wonderland.db")
 		smt, _ := db.Prepare("SELECT id, username FROM sessions WHERE id = ?")
 		row := smt.QueryRow(cookie.Value)
 		row.Scan(&tmp, &name)
-		fmt.Fprint(w, "welcome " + name )
+		smt.Close()
+		db.Close()
 	}
+	tmpl, _ := template.ParseFiles("dash.html")
+	tmpl.Execute(w, name)
+}
+
+func deleteSession(r *http.Request) {
+	cookie, _ := r.Cookie("session_id")
+	db, _ := sql.Open("sqlite3", "wonderland.db")
+	smt, _ := db.Prepare("DELETE FROM sessions WHERE id = ?")
+	smt.Exec(cookie.Value)
+	smt.Close()
+	db.Close()
+}
+
+func handlelogout(w http.ResponseWriter, r *http.Request) {
+	cookie := http.Cookie{
+		Name:     "session_id",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		Expires:  time.Now().Add(-time.Hour),
+		HttpOnly: true,
+	}
+	http.SetCookie(w, &cookie)
+	deleteSession(r)
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 func main() {
@@ -174,6 +201,8 @@ func main() {
 	http.HandleFunc("/", handlefunc)
 	http.HandleFunc("/dash", handling)
 	http.Handle("/log", auth(http.HandlerFunc(handlelog)))
+	http.HandleFunc("/logout", handlelogout)
+
 	http.HandleFunc("/register", registerhandler)
 	http.HandleFunc("/api/register", registerapi)
 	http.ListenAndServe(":8080", nil)
